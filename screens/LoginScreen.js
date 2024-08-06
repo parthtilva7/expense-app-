@@ -70,7 +70,7 @@ const LoginScreen = ({ navigation }) => {
             <Input
               placeholder="Email"
               placeholderTextColor="#888"
-              inputStyle={{ color: "black" }}
+              // inputStyle={{ color: "black" }}
               value={email}
               onChangeText={(text) => setEmail(text)}
               inputContainerStyle={styles.input}
@@ -78,7 +78,7 @@ const LoginScreen = ({ navigation }) => {
             <Input
               placeholder="Password"
               placeholderTextColor="#888"
-              inputStyle={{ color: "black" }}
+              // inputStyle={{ color: "black" }}
               value={password}
               secureTextEntry
               onChangeText={(text) => setPassword(text)}

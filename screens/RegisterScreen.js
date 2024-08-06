@@ -78,7 +78,6 @@ const RegisterScreen = ({ navigation }) => {
           <Input
             placeholder="Full Name"
             placeholderTextColor="#888"
-            inputStyle={{ color: "white" }}
             value={fullName}
             onChangeText={(text) => setFullName(text)}
             inputContainerStyle={styles.input}
@@ -86,7 +85,6 @@ const RegisterScreen = ({ navigation }) => {
           <Input
             placeholder="Email"
             placeholderTextColor="#888"
-            inputStyle={{ color: "white" }}
             value={email}
             onChangeText={(text) => setEmail(text)}
             inputContainerStyle={styles.input}
@@ -94,7 +92,6 @@ const RegisterScreen = ({ navigation }) => {
           <Input
             placeholder="Password"
             placeholderTextColor="#888"
-            inputStyle={{ color: "white" }}
             value={password}
             secureTextEntry
             onChangeText={(text) => setPassword(text)}
@@ -103,7 +100,6 @@ const RegisterScreen = ({ navigation }) => {
           <Input
             placeholder="Profile Picture Url (Optional)"
             placeholderTextColor="#888"
-            inputStyle={{ color: "white" }}
             value={imageUrl}
             onChangeText={(text) => setImageUrl(text)}
             inputContainerStyle={styles.input}

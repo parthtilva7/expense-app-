@@ -1,27 +1,32 @@
-import { StatusBar } from 'expo-status-bar'
-import React, { useLayoutEffect, useState } from 'react'
-import { StyleSheet, View, KeyboardAvoidingView, TextInput } from 'react-native'
-import { Text, Button } from 'react-native-elements'
-import DateTimePicker from '@react-native-community/datetimepicker'
-import format from 'date-fns/format'
-import { Picker } from '@react-native-picker/picker'
-import { auth, db, addDoc, collection, serverTimestamp } from '../firebase'
+import { StatusBar } from "expo-status-bar";
+import React, { useLayoutEffect, useState } from "react";
+import {
+  StyleSheet,
+  View,
+  KeyboardAvoidingView,
+  TextInput,
+} from "react-native";
+import { Text, Button } from "react-native-elements";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import format from "date-fns/format";
+import { Picker } from "@react-native-picker/picker";
+import { auth, db, addDoc, collection, serverTimestamp } from "../firebase";
 
 const AddScreen = ({ navigation }) => {
-  const [submitLoading, setSubmitLoading] = useState(false)
+  const [submitLoading, setSubmitLoading] = useState(false);
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: 'Add Expense',
-    })
-  }, [navigation])
+      title: "Add Expense",
+    });
+  }, [navigation]);
 
-  const [input, setInput] = useState('')
-  const [amount, setAmount] = useState('')
+  const [input, setInput] = useState("");
+  const [amount, setAmount] = useState("");
 
   const createExpense = () => {
     if (input && amount && selDate && selectedLanguage && auth) {
-      setSubmitLoading(true)
-      addDoc(collection(db, 'expense'), {
+      setSubmitLoading(true);
+      addDoc(collection(db, "expense"), {
         email: auth.currentUser.email,
         text: input,
         price: amount,
@@ -31,79 +36,79 @@ const AddScreen = ({ navigation }) => {
         userDate: result,
       })
         .then(() => clearInputFields())
-        .catch((error) => alert(error.message))
+        .catch((error) => alert(error.message));
     } else {
-      alert('All fields are mandatory')
-      setSubmitLoading(false)
+      alert("All fields are mandatory");
+      setSubmitLoading(false);
     }
-  }
+  };
 
   const clearInputFields = () => {
-    alert('Created Successfully')
-    setInput('')
-    setAmount('')
-    setSelDate(new Date())
-    setSelectedLanguage('expense')
-    navigation.navigate('Home')
-    setSubmitLoading(false)
-  }
+    alert("Created Successfully");
+    setInput("");
+    setAmount("");
+    setSelDate(new Date());
+    setSelectedLanguage("expense");
+    navigation.navigate("Home");
+    setSubmitLoading(false);
+  };
 
-  const [selDate, setSelDate] = useState(new Date())
-  const [show, setShow] = useState(false)
-  const [mode, setMode] = useState('date')
+  const [selDate, setSelDate] = useState(new Date());
+  const [show, setShow] = useState(false);
+  const [mode, setMode] = useState("date");
 
   const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date
-    setShow(Platform.OS === 'ios')
-    setSelDate(currentDate)
-  }
+    const currentDate = selectedDate || date;
+    setShow(Platform.OS === "ios");
+    setSelDate(currentDate);
+  };
 
   const showMode = (currentMode) => {
-    setShow(true)
-    setMode(currentMode)
-  }
+    setShow(true);
+    setMode(currentMode);
+  };
 
   const showDatepicker = () => {
-    showMode('date')
-  }
-  
-  const result = format(selDate, 'dd/MM/yyyy')
+    showMode("date");
+  };
 
-  const [selectedLanguage, setSelectedLanguage] = useState('expense')
+  const result = format(selDate, "dd/MM/yyyy");
+
+  const [selectedLanguage, setSelectedLanguage] = useState("expense");
 
   return (
     <KeyboardAvoidingView style={styles.container}>
-      <StatusBar style='dark' />
+      <StatusBar style="dark" />
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          placeholder='Add Text'
+          placeholder="Add Text"
           value={input}
           onChangeText={(text) => setInput(text)}
         />
 
         {show && (
           <DateTimePicker
-            testID='dateTimePicker'
+            testID="dateTimePicker"
             value={selDate}
             mode={mode}
             is24Hour={true}
-            display='default'
+            display="default"
             onChange={onChange}
           />
         )}
 
         <TextInput
           style={styles.input}
-          keyboardType='numeric'
-          placeholder='Add Amount'
+          keyboardType="numeric"
+          placeholder="Add Amount"
           value={amount}
           onChangeText={(text) => setAmount(text)}
         />
 
         <Text
           style={styles.input}
-          placeholder='Select Date'
+          placeholder="Select Date"
           value={result}
           onPress={showDatepicker}
         >
@@ -115,29 +120,29 @@ const AddScreen = ({ navigation }) => {
             setSelectedLanguage(itemValue)
           }
         >
-          <Picker.Item label='Expense' value='expense' />
-          <Picker.Item label='Income' value='income' />
+          <Picker.Item label="Expense" value="expense" />
+          <Picker.Item label="Income" value="income" />
         </Picker>
 
         <Button
           containerStyle={styles.button}
-          title='Add'
+          title="Add"
           onPress={createExpense}
           loading={submitLoading}
         />
       </View>
     </KeyboardAvoidingView>
-  )
-}
+  );
+};
 
-export default AddScreen
+export default AddScreen;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 10,
   },
   inputContainer: {
@@ -145,12 +150,13 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-    borderColor: 'gray',
+    borderColor: "gray",
     borderBottomWidth: 1,
     marginBottom: 20,
   },
   button: {
-    width: 300,
-    marginTop: 10,
+    backgroundColor: "#1E88E5",
+    borderRadius: 20,
+    paddingVertical: 5,
   },
-})
+});

@@ -1,323 +1,281 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react'
-import { StyleSheet, View, TouchableOpacity } from 'react-native'
-import { Text, Avatar, ListItem } from 'react-native-elements'
-import { auth, db, onSnapshot, query, collection, orderBy } from '../firebase'
-import { StatusBar } from 'expo-status-bar'
-import { AntDesign, Feather, FontAwesome5 } from '@expo/vector-icons'
-import CustomListItem from '../components/CustomListItem'
+import React, { useEffect, useLayoutEffect, useState } from "react";
+import { StyleSheet, View, TouchableOpacity, ScrollView } from "react-native";
+import { Text, Avatar } from "react-native-elements";
+import { auth, db, onSnapshot, query, collection, orderBy } from "../firebase";
+import { StatusBar } from "expo-status-bar";
+import { AntDesign, Feather, FontAwesome5 } from "@expo/vector-icons";
+import CustomListItem from "../components/CustomListItem";
 
 const HomeScreen = ({ navigation }) => {
+  const [transactions, setTransactions] = useState([]);
+  const [totalIncome, setTotalIncome] = useState(0);
+  const [totalExpense, setTotalExpense] = useState(0);
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [filter, setFilter] = useState([]);
+
   const signOutUser = () => {
     auth
       .signOut()
-      .then(() => navigation.replace('Login'))
-      .catch((error) => alert(error.message))
-  }
+      .then(() => navigation.replace("Login"))
+      .catch((error) => alert(error.message));
+  };
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: 'Budget Tracker',
+      title: "Budget Tracker",
       headerRight: () => (
         <View style={{ marginRight: 20 }}>
           <TouchableOpacity activeOpacity={0.5} onPress={signOutUser}>
-            <Text style={{ fontWeight: 'bold' }}>Logout</Text>
+            <Text style={{ fontWeight: "bold", color: "#FFF" }}>Logout</Text>
           </TouchableOpacity>
         </View>
       ),
-    })
-  }, [navigation])
+      headerStyle: {
+        backgroundColor: "#2C6BED",
+      },
+      headerTitleStyle: {
+        color: "#FFF",
+      },
+    });
+  }, [navigation]);
 
-  const [transactions, setTransactions] = useState([])
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      query(collection(db, 'expense'), orderBy('timestamp', 'desc')),
+      query(collection(db, "expense"), orderBy("timestamp", "desc")),
       (snapshot) => {
-        setTransactions(
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            data: doc.data(),
-          }))
-        ) &
-          setTotalIncome(
-            snapshot.docs.map((doc) =>
-              doc.data()?.email === auth.currentUser.email &&
-                doc.data()?.type == 'income'
-                ? doc.data().price
-                : 0
-            )
-          ) &
-          setTotalExpense(
-            snapshot.docs.map((doc) =>
-              doc.data()?.email === auth.currentUser.email &&
-                doc.data()?.type == 'expense'
-                ? doc.data().price
-                : 0
-            )
-          )
-      }
-    )
+        const allTransactions = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          data: doc.data(),
+        }));
 
-    return unsubscribe
-  }, [])
-
-  const [totalIncome, setTotalIncome] = useState(0)
-  const [income, setIncome] = useState(0)
-  const [totalExpense, setTotalExpense] = useState(0)
-  const [expense, setExpense] = useState(0)
-  const [totalBalance, setTotalBalance] = useState(0)
-  const [filter, setFilter] = useState([])
-
-  useEffect(() => {
-    const calculateIncome = () => {
-      if (totalIncome && Array.isArray(totalIncome) && totalIncome.length > 0) {
-        const totalIncomeSum = totalIncome.reduce((acc, val) => acc + Number(val), 0)
-        setIncome(totalIncomeSum)
-      } else {
-        setIncome(0)
-      }
-    }
-
-    calculateIncome()
-  }, [totalIncome])
-
-
-  useEffect(() => {
-    const calculateExpense = () => {
-      if (totalExpense && Array.isArray(totalExpense) && totalExpense.length > 0) {
-        const totalExpenseSum = totalExpense.reduce((acc, val) => acc + Number(val), 0)
-        setExpense(totalExpenseSum)
-      } else {
-        setExpense(0)
-      }
-    }
-
-    calculateExpense()
-  }, [totalExpense])
-
-  useEffect(() => {
-    setTotalBalance(income - expense)
-  }, [income, expense])
-
-  useEffect(() => {
-    if (transactions) {
-      setFilter(
-        transactions.filter(
+        const userTransactions = allTransactions.filter(
           (transaction) => transaction.data.email === auth.currentUser.email
-        )
+        );
+
+        const totalIncomeSum = userTransactions
+          .filter((t) => t.data.type === "income")
+          .reduce((acc, val) => acc + Number(val.data.price), 0);
+
+        const totalExpenseSum = userTransactions
+          .filter((t) => t.data.type === "expense")
+          .reduce((acc, val) => acc + Number(val.data.price), 0);
+
+        setTransactions(allTransactions);
+        setTotalIncome(totalIncomeSum);
+        setTotalExpense(totalExpenseSum);
+      }
+    );
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    setTotalBalance(totalIncome - totalExpense);
+  }, [totalIncome, totalExpense]);
+
+  useEffect(() => {
+    setFilter(
+      transactions.filter(
+        (transaction) => transaction.data.email === auth.currentUser.email
       )
-    }
-  }, [transactions])
+    );
+  }, [transactions]);
 
   return (
-    <>
-      <View style={styles.container}>
-        <StatusBar style='dark' />
-        <View style={styles.fullName}>
-          <Avatar
-            size='medium'
-            rounded
-            source={{
-              uri: auth?.currentUser?.photoURL,
-            }}
-          />
-          <View style={{ marginLeft: 10 }}>
-            <Text style={{ fontWeight: 'bold' }}>Welcome</Text>
-            <Text h4 style={{ color: '#4A2D5D' }}>
-              {auth.currentUser.displayName}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.card}>
-          <View style={styles.cardTop}>
-            <Text style={{ textAlign: 'center', color: 'aliceblue' }}>
-              Total Balance
-            </Text>
-            <Text h3 style={{ textAlign: 'center', color: 'aliceblue' }}>
-              $ {totalBalance.toFixed(2)}
-            </Text>
-          </View>
-          <View style={styles.cardBottom}>
-            <View>
-              <View style={styles.cardBottomSame}>
-                <Feather name='arrow-down' size={18} color='green' />
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    marginLeft: 5,
-                  }}
-                >
-                  Income
-                </Text>
-              </View>
-              <Text h4 style={{ textAlign: 'center' }}>
-                {`$ ${income?.toFixed(2)}`}
-              </Text>
-            </View>
-            <View>
-              <View style={styles.cardBottomSame}>
-                <Feather name='arrow-up' size={18} color='red' />
-                <Text style={{ textAlign: 'center', marginLeft: 5 }}>
-                  Expense
-                </Text>
-              </View>
-              <Text h4 style={{ textAlign: 'center' }}>
-                {`$ ${expense?.toFixed(2)}`}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.recentTitle}>
-          <Text h4 style={{ color: '#4A2D5D' }}>
-            Recent Transactions
+    <View style={styles.container}>
+      <StatusBar style="light" />
+      <View style={styles.header}>
+        <Avatar
+          size="medium"
+          rounded
+          source={{
+            uri: auth?.currentUser?.photoURL,
+          }}
+          containerStyle={styles.avatar}
+        />
+        <Text style={styles.greetingText}>
+          Hi, {auth.currentUser.displayName}
+        </Text>
+      </View>
+      <View style={styles.balanceCard}>
+        <Text style={styles.balanceText}>Total Balance</Text>
+        <Text style={styles.balanceAmount}>${totalBalance.toFixed(2)}</Text>
+      </View>
+      <View style={styles.incomeExpenseContainer}>
+        <View
+          style={[styles.incomeExpenseCard, { backgroundColor: "#4CAF50" }]}
+        >
+          <Feather name="arrow-down" size={24} color="#FFF" />
+          <Text style={styles.incomeExpenseText}>Income</Text>
+          <Text style={styles.incomeExpenseAmount}>
+            ${totalIncome.toFixed(2)}
           </Text>
-          <TouchableOpacity
-            activeOpacity={0.5}
-            onPress={() => navigation.navigate('All')}
-          >
-            <Text style={styles.seeAll}>See All</Text>
-          </TouchableOpacity>
         </View>
-
-        {filter?.length > 0 ? (
-          <View style={styles.recentTransactions}>
-            {filter?.slice(0, 3).map((info) => (
-              <View key={info.id}>
-                <CustomListItem
-                  info={info.data}
-                  navigation={navigation}
-                  id={info.id}
-                />
-              </View>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.containerNull}>
-            <FontAwesome5 name='list-alt' size={24} color='#EF8A76' />
-            <Text h4 style={{ color: '#4A2D5D' }}>
-              No Transactions
-            </Text>
-          </View>
-        )}
+        <View
+          style={[styles.incomeExpenseCard, { backgroundColor: "#F44336" }]}
+        >
+          <Feather name="arrow-up" size={24} color="#FFF" />
+          <Text style={styles.incomeExpenseText}>Expense</Text>
+          <Text style={styles.incomeExpenseAmount}>
+            ${totalExpense.toFixed(2)}
+          </Text>
+        </View>
       </View>
-      <View style={styles.addButton}>
-        <TouchableOpacity
-          activeOpacity={0.5}
-          onPress={() => navigation.navigate('Home')}
-        >
-          <AntDesign name='home' size={24} color='#66AFBB' />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.plusButton}
-          onPress={() => navigation.navigate('Add')}
-          activeOpacity={0.5}
-        >
-          <AntDesign name='plus' size={24} color='white' />
-        </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={0.5}
-          onPress={() => navigation.navigate('All')}
-        >
-          <FontAwesome5 name='list-alt' size={24} color='#EF8A76' />
+      <View style={styles.recentTitleContainer}>
+        <Text style={styles.recentTitle}>Recent Transactions</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("All")}>
+          <Text style={styles.seeAllText}>See All</Text>
         </TouchableOpacity>
       </View>
-    </>
-  )
-}
+      <ScrollView style={styles.transactionList}>
+        {filter.slice(0, 3).map((info) => (
+          <CustomListItem
+            key={info.id}
+            info={info.data}
+            navigation={navigation}
+            id={info.id}
+          />
+        ))}
+      </ScrollView>
+      <View style={styles.footer}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Home")}
+          style={styles.footerIcon}
+        >
+          <AntDesign name="home" size={24} color="#2C6BED" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Add")}
+          style={styles.addButton}
+        >
+          <AntDesign name="plus" size={24} color="#FFF" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("All")}
+          style={styles.footerIcon}
+        >
+          <FontAwesome5 name="list-alt" size={24} color="#2C6BED" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
 
-export default HomeScreen
+export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
     flex: 1,
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-    padding: 10,
+    backgroundColor: "#F5F5F5",
   },
-  fullName: {
-    flexDirection: 'row',
-  },
-  card: {
-    backgroundColor: '#535F93',
-    alignItems: 'center',
-    width: '100%',
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
+    backgroundColor: "#2C6BED",
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    height: 70,
+  },
+  avatar: {
+    marginRight: 10,
+  },
+  greetingText: {
+    color: "#FFF",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  balanceCard: {
+    backgroundColor: "#FFF",
+    margin: 20,
+    padding: 20,
     borderRadius: 10,
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 4,
-    marginVertical: 20,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  cardTop: {
-    marginBottom: 20,
+  balanceText: {
+    fontSize: 18,
+    color: "#555",
   },
-  cardBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    width: '100%',
-    margin: 'auto',
-    backgroundColor: '#E0D1EA',
-    borderRadius: 5,
+  balanceAmount: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#2C6BED",
   },
-  cardBottomSame: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+  incomeExpenseContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginHorizontal: 20,
+  },
+  incomeExpenseCard: {
+    flex: 1,
+    margin: 10,
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  incomeExpenseText: {
+    color: "#FFF",
+    fontSize: 18,
+    marginTop: 10,
+  },
+  incomeExpenseAmount: {
+    color: "#FFF",
+    fontSize: 22,
+    fontWeight: "bold",
+    marginTop: 5,
+  },
+  recentTitleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginTop: 20,
   },
   recentTitle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
   },
-  recentTransactions: {
-    backgroundColor: 'white',
-    width: '100%',
+  seeAllText: {
+    color: "#2C6BED",
+    fontWeight: "bold",
   },
-  seeAll: {
-    fontWeight: 'bold',
-    color: 'green',
-    fontSize: 16,
+  transactionList: {
+    marginHorizontal: 20,
+    marginTop: 10,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingVertical: 10,
+    backgroundColor: "#FFF",
+    borderTopWidth: 1,
+    borderTopColor: "#DDD",
+  },
+  footerIcon: {
+    padding: 10,
   },
   addButton: {
-    position: 'absolute',
-    bottom: 0,
-    padding: 10,
-    backgroundColor: 'white',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 12,
-    },
-    shadowOpacity: 0.58,
-    shadowRadius: 16.0,
-
-    elevation: 24,
-  },
-  plusButton: {
-    backgroundColor: '#535F93',
-    padding: 10,
+    backgroundColor: "#2C6BED",
+    padding: 15,
     borderRadius: 50,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 12,
-    },
-    shadowOpacity: 0.58,
-    shadowRadius: 16.0,
-    elevation: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  containerNull: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    width: '100%',
-  },
-})
+});

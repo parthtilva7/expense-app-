@@ -78,7 +78,7 @@ const LoginScreen = ({ navigation }) => {
             <Input
               placeholder="Password"
               placeholderTextColor="#888"
-              inputStyle={{ color: "white" }}
+              inputStyle={{ color: "black" }}
               value={password}
               secureTextEntry
               onChangeText={(text) => setPassword(text)}
@@ -166,6 +166,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   loadingText: {
-    color: "white",
+    color: "black",
   },
 });

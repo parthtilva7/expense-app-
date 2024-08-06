@@ -94,7 +94,7 @@ const HomeScreen = ({ navigation }) => {
           containerStyle={styles.avatar}
         />
         <Text style={styles.greetingText}>
-          Hi, {auth.currentUser.displayName}
+          Welcome, {auth.currentUser.displayName}
         </Text>
       </View>
       <View style={styles.balanceCard}>

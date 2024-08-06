@@ -8,6 +8,7 @@ import CustomListItem from "../components/CustomListItem";
 
 const AllTransactions = ({ navigation }) => {
   const [transactions, setTransactions] = useState([]);
+  const [filter, setFilter] = useState([]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -22,6 +23,16 @@ const AllTransactions = ({ navigation }) => {
     );
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (transactions) {
+      setFilter(
+        transactions.filter(
+          (transaction) => transaction.data.email === auth.currentUser.email
+        )
+      );
+    }
+  }, [transactions]);
 
   return (
     <View style={styles.container}>
@@ -43,7 +54,7 @@ const AllTransactions = ({ navigation }) => {
         <Text style={styles.balanceText}>All Transactions</Text>
       </View>
       <ScrollView style={styles.transactionList}>
-        {transactions.map((info) => (
+        {filter.map((info) => (
           <CustomListItem
             key={info.id}
             info={info.data}
